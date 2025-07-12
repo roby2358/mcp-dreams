@@ -1,7 +1,7 @@
 {
   "name": "mcp-dreams-server",
   "version": "1.0.0",
-  "description": "Minimal MCP server using official SDK",
+  "description": "A mystical TypeScript MCP server that provides access to a dreamscape crafting system",
   "main": "dist/mcp-server.js",
   "bin": {
     "mcp-dreams-server": "dist/cli.js"
@@ -20,6 +20,15 @@
     "typescript": "^5.0.0",
     "ts-node": "^10.9.0"
   },
-  "keywords": ["mcp", "model-context-protocol"],
-  "license": "MIT"
+  "keywords": ["mcp", "model-context-protocol", "dreams", "dreamscape", "narrative", "storytelling", "claude"],
+  "license": "MIT",
+  "author": "yuwakisa",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuwakisa/mcp-dreams.git"
+  },
+  "homepage": "https://github.com/yuwakisa/mcp-dreams#readme",
+  "bugs": {
+    "url": "https://github.com/yuwakisa/mcp-dreams/issues"
+  }
 } 
