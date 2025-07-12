@@ -1,6 +1,6 @@
 {
-  "name": "mcp-dreams-server",
-  "version": "1.0.2",
+  "name": "@yuwakisa/mcp-dreams-server",
+  "version": "1.0.3",
   "description": "A mystical TypeScript MCP server that provides access to a dreamscape crafting system",
   "main": "dist/mcp-server.js",
   "bin": {

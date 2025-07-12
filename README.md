@@ -77,7 +77,7 @@ The server runs in stdio mode by default, perfect for MCP usage.
 
 The CLI supports HTTP mode (coming soon):
 ```sh
-npx mcp-dreams-server --http --port=8080
+npx @yuwakisa/mcp-dreams-server --http --port=8080
 ```
 
 ## Tools Reference
@@ -133,7 +133,7 @@ To connect this dreamscape to Claude Desktop, you MUST modify your configuration
      "mcpServers": {
        "dreams": {
          "command": "npx",
-         "args": ["mcp-dreams-server"],
+         "args": ["@yuwakisa/mcp-dreams-server"],
          "env": {}
        }
      }
