@@ -1,8 +1,11 @@
 {
-  "name": "dreams-mcp-server",
+  "name": "mcp-dreams-server",
   "version": "1.0.0",
   "description": "Minimal MCP server using official SDK",
   "main": "dist/mcp-server.js",
+  "bin": {
+    "mcp-dreams-server": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/mcp-server.js",

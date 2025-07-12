@@ -42,6 +42,17 @@ The dreamscape will fight you. It follows its own mysterious logic:
 
 ## Setup
 
+### Option 1: Using npx (Recommended)
+
+Run the dreamscape server directly without installation:
+```sh
+npx mcp-dreams-server
+```
+
+The server runs in stdio mode by default, perfect for MCP usage.
+
+### Option 2: Local Development
+
 1. **Install dependencies:**
    ```sh
    npm install
@@ -61,6 +72,13 @@ The dreamscape will fight you. It follows its own mysterious logic:
    ```sh
    npm run dev
    ```
+
+### Future HTTP Support
+
+The CLI supports HTTP mode (coming soon):
+```sh
+npx mcp-dreams-server --http --port=8080
+```
 
 ## Tools Reference
 
@@ -109,19 +127,33 @@ To connect this dreamscape to Claude Desktop, you MUST modify your configuration
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-2. **Add the server configuration:**
+2. **Add the server configuration using npx (recommended):**
    ```json
    {
      "mcpServers": {
        "dreams": {
-         "command": "node",
-         "args": ["/path/to/your/mcp-dreams/dist/mcp-server.js"]
+         "command": "npx",
+         "args": ["mcp-dreams-server"],
+         "env": {}
        }
      }
    }
    ```
 
-3. **Update the path** in the `args` array to match your actual installation location
+   **Alternative: Local installation path**
+   ```json
+   {
+     "mcpServers": {
+       "dreams": {
+         "command": "node",
+         "args": ["/path/to/your/mcp-dreams/dist/cli.js"],
+         "env": {}
+       }
+     }
+   }
+   ```
+
+3. **If using the local path option**, update the path in the `args` array to match your actual installation location
 
 4. **Restart Claude Desktop**
 

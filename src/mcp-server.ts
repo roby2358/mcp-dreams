@@ -15,13 +15,6 @@ import { INTRO_TEXT } from './intro-text.js';
 import { Dreamscape } from './dreamscape.js';
 import { logger, LogLevel } from './logger.js';
 
-// Set log level from environment variable or default to INFO
-const logLevel = (process.env.LOG_LEVEL as LogLevel) || LogLevel.INFO;
-logger.setLevel(logLevel);
-
-// Create the dreamscape instance
-const dreamscape = new Dreamscape();
-
 // Define input schemas
 const AttemptNarrativeInputSchema = z.object({
   narrative_entry: z.string().describe('The narrative entry to add to the dream story'),
@@ -35,7 +28,6 @@ const AttemptTransitionInputSchema = z.object({
   opposite_entry: z.string().describe('The opposite of what was intended to happen during transition'),
   recede_entry: z.string().describe('The transition receding and becoming harder to achieve')
 });
-
 
 // Define tools
 const dreamscapeTool: Tool = {
@@ -111,174 +103,181 @@ const submergeTool: Tool = {
 // Collect all tools in an array for easier management
 const allTools = [dreamscapeTool, attemptNarrativeTool, attemptTransitionTool, submergeTool];
 
-// Create the MCP server
-const server = new Server(
-  {
+// Create and configure the MCP server
+export function createMCPServer(): { server: Server; dreamscape: Dreamscape } {
+  const dreamscape = new Dreamscape();
+  
+  const server = new Server({
     name: 'dreams-mcp-server',
     version: '1.0.0',
     capabilities: {
       tools: {},
       prompts: {},
     },
-  }
-);
+  });
 
-// Handle tool listing
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: allTools,
-  };
-});
-
-// Handle tool calls
-server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-  const { name, arguments: args } = request.params;
-  
-  logger.info('Tool call received', { tool_name: name, arguments: args });
-  
-  try {
-    switch (name) {
-      case 'submerge':
-        const submergeResult = dreamscape.submerge();
-        
-        logger.info('Tool call completed successfully', { 
-          tool_name: name,
-          new_dreamscape: submergeResult.dreamscape,
-          emotional_tone: submergeResult.emotional_tone
-        });
-        
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(submergeResult, null, 2),
-            },
-          ],
-        };
-
-      case 'dreamscape':
-        const state = dreamscape.getState();
-        logger.info('Dreamscape state retrieved', { 
-          current_scene: state.dreamscape,
-          emotional_tone: state.emotional_tone,
-          narrative_length: state.narrative.length
-        });
-        
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(state, null, 2),
-            },
-          ],
-        };
-      
-      case 'attempt_narrative':
-        const narrativeInput = AttemptNarrativeInputSchema.parse(args || {});
-        logger.debug('Parsing narrative input', { input: narrativeInput });
-        
-        const alteredNarrative = dreamscape.addNarrative(
-          narrativeInput.narrative_entry,
-          narrativeInput.alternate_entry,
-          narrativeInput.opposite_entry,
-          narrativeInput.recede_entry
-        );
-        
-        logger.info('Tool call completed successfully', { 
-          tool_name: name,
-          result_length: alteredNarrative.length
-        });
-        
-        return {
-          content: [
-            {
-              type: 'text',
-              text: alteredNarrative,
-            },
-          ],
-        };
-      
-
-      case 'attempt_transition':
-        const transitionInput = AttemptTransitionInputSchema.parse(args || {});
-        logger.debug('Parsing transition input', { input: transitionInput });
-        const transitionResult = dreamscape.transitionDreamscape(
-          transitionInput.alternate_entry,
-          transitionInput.opposite_entry,
-          transitionInput.recede_entry
-        );
-        
-        logger.info('Tool call completed successfully', { 
-          tool_name: name,
-          result: transitionResult
-        });
-        
-        return {
-          content: [
-            {
-              type: 'text',
-              text: transitionResult,
-            },
-          ],
-        };
-      
-      default:
-        logger.error('Unknown tool requested', { tool_name: name });
-        throw new Error(`Unknown tool: ${name}`);
-    }
-  } catch (error) {
-    logger.error('Tool call failed', { 
-      tool_name: name, 
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
-    });
-    throw error;
-  }
-});
-
-// Handle prompt listing
-server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  logger.debug('Prompt list requested');
-  
-  return {
-    prompts: [
-      {
-        name: 'intro',
-        description: 'Introduction prompt for the Dreams MCP wrapper',
-        arguments: [],
-      },
-    ],
-  };
-});
-
-// Handle prompt requests
-server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptRequest) => {
-  logger.info('Prompt requested', { prompt_name: request.params.name });
-  
-  if (request.params.name === 'intro') {
+  // Handle tool listing
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-      description: 'Introduction prompt for the Dreams MCP wrapper',
-      messages: [
+      tools: allTools,
+    };
+  });
+
+  // Handle tool calls
+  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
+    const { name, arguments: args } = request.params;
+    
+    logger.info('Tool call received', { tool_name: name, arguments: args });
+    
+    try {
+      switch (name) {
+        case 'submerge':
+          const submergeResult = dreamscape.submerge();
+          
+          logger.info('Tool call completed successfully', { 
+            tool_name: name,
+            new_dreamscape: submergeResult.dreamscape,
+            emotional_tone: submergeResult.emotional_tone
+          });
+          
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(submergeResult, null, 2),
+              },
+            ],
+          };
+
+        case 'dreamscape':
+          const state = dreamscape.getState();
+          logger.info('Dreamscape state retrieved', { 
+            current_scene: state.dreamscape,
+            emotional_tone: state.emotional_tone,
+            narrative_length: state.narrative.length
+          });
+          
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(state, null, 2),
+              },
+            ],
+          };
+        
+        case 'attempt_narrative':
+          const narrativeInput = AttemptNarrativeInputSchema.parse(args || {});
+          logger.debug('Parsing narrative input', { input: narrativeInput });
+          
+          const alteredNarrative = dreamscape.addNarrative(
+            narrativeInput.narrative_entry,
+            narrativeInput.alternate_entry,
+            narrativeInput.opposite_entry,
+            narrativeInput.recede_entry
+          );
+          
+          logger.info('Tool call completed successfully', { 
+            tool_name: name,
+            result_length: alteredNarrative.length
+          });
+          
+          return {
+            content: [
+              {
+                type: 'text',
+                text: alteredNarrative,
+              },
+            ],
+          };
+        
+        case 'attempt_transition':
+          const transitionInput = AttemptTransitionInputSchema.parse(args || {});
+          logger.debug('Parsing transition input', { input: transitionInput });
+          const transitionResult = dreamscape.transitionDreamscape(
+            transitionInput.alternate_entry,
+            transitionInput.opposite_entry,
+            transitionInput.recede_entry
+          );
+          
+          logger.info('Tool call completed successfully', { 
+            tool_name: name,
+            result: transitionResult
+          });
+          
+          return {
+            content: [
+              {
+                type: 'text',
+                text: transitionResult,
+              },
+            ],
+          };
+        
+        default:
+          logger.error('Unknown tool requested', { tool_name: name });
+          throw new Error(`Unknown tool: ${name}`);
+      }
+    } catch (error) {
+      logger.error('Tool call failed', { 
+        tool_name: name, 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error;
+    }
+  });
+
+  // Handle prompt listing
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    logger.debug('Prompt list requested');
+    
+    return {
+      prompts: [
         {
-          role: 'assistant',
-          content: {
-            type: 'text',
-            text: INTRO_TEXT,
-          },
+          name: 'intro',
+          description: 'Introduction prompt for the Dreams MCP wrapper',
+          arguments: [],
         },
       ],
     };
-  }
-  
-  logger.error('Unknown prompt requested', { prompt_name: request.params.name });
-  throw new Error(`Unknown prompt: ${request.params.name}`);
-});
+  });
 
-// Start the server with stdio transport
-async function startServer() {
-  try {
-    logger.info('Starting Dreams MCP Server', { log_level: logLevel });
+  // Handle prompt requests
+  server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptRequest) => {
+    logger.info('Prompt requested', { prompt_name: request.params.name });
     
+    if (request.params.name === 'intro') {
+      return {
+        description: 'Introduction prompt for the Dreams MCP wrapper',
+        messages: [
+          {
+            role: 'assistant',
+            content: {
+              type: 'text',
+              text: INTRO_TEXT,
+            },
+          },
+        ],
+      };
+    }
+    
+    logger.error('Unknown prompt requested', { prompt_name: request.params.name });
+    throw new Error(`Unknown prompt: ${request.params.name}`);
+  });
+
+  return { server, dreamscape };
+}
+
+// Start server with stdio transport (for backwards compatibility)
+export async function startStdioServer() {
+  const logLevel = (process.env.LOG_LEVEL as LogLevel) || LogLevel.INFO;
+  logger.setLevel(logLevel);
+
+  try {
+    logger.info('Starting Dreams MCP Server (stdio)', { log_level: logLevel });
+    
+    const { server } = createMCPServer();
     const transport = new StdioServerTransport();
     await server.connect(transport);
     
@@ -296,10 +295,13 @@ async function startServer() {
   }
 }
 
-startServer().catch((error) => {
-  logger.error('Server startup failed', { 
-    error: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined
+// Run stdio server if this file is executed directly
+if (require.main === module) {
+  startStdioServer().catch((error) => {
+    logger.error('Server startup failed', { 
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    process.exit(1);
   });
-  process.exit(1);
-}); 
+} 
